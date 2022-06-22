@@ -6,6 +6,7 @@ let inputPriceEle=document.querySelector(".product-price");
 let formEle=document.querySelector('form');
 let listEle=document.querySelector(".list-group");
 let filterEle=document.querySelector("#filter");
+let submitBtnEle=document.querySelector((".add-product"));
 
 //tracking items
 let product=[
@@ -23,6 +24,7 @@ function showFilterItem(filterItem){
     let listData=`<li class="list-group-item collection-item item-${element.id}">
     <strong>${element.name}</strong>- <span class="price">$${element.price}</span>
     <i class="fa fa-trash float-end delete-item"></i>
+    <i class="fa fa-pencil-alt float-end edit-item pe-4"></i>
     </li>`
 
     listEle.insertAdjacentHTML('afterbegin', listData);
@@ -84,6 +86,7 @@ function addItemToUI(id, name, price){
     let listData=`<li class="list-group-item collection-item item-${id}">
     <strong>${name}</strong>- <span class="price">$${price}</span>
     <i class="fa fa-trash float-end delete-item"></i>
+    <i class="fa fa-pencil-alt float-end edit-item pe-4"></i>
     </li>`
 
     listEle.insertAdjacentHTML('afterbegin', listData);
@@ -102,6 +105,20 @@ function addItemToLocalStorage(pro){
         //update to LocalStorage
         localStorage.setItem("productData", JSON.stringify(LocalProduct));
     }
+}
+
+function populateUIInEditState(foundProductArr){
+    //console.log(foundProductArr);
+    inputNameEle.value=foundProductArr.name;
+    inputPriceEle.value=foundProductArr.price;
+}
+
+function showUpdateBtn(){
+    let updateBtn=`<div class="d-flex justify-content-center">
+    <button type="button" class="btn mt-3 btn-block btn-warning update-product">Update</button>
+    <div>`
+    submitBtnEle.style.display='none';
+    formEle.insertAdjacentHTML('beforeend', updateBtn);
 }
 
 function init(){
@@ -139,6 +156,7 @@ function init(){
     })
     
     //delete item (event delegation)
+    let updateItemId;
     listEle.addEventListener("click", e=>{
         if(e.target.classList.contains('delete-item')){
             let getID = getItemID(e.target);
@@ -149,6 +167,19 @@ function init(){
             removeItemFromDataStore(getID);
             //remove item from LocalStorage
             removeItemFromLocalStorage(getID);
+        }
+        //edit and update item
+        else if(e.target.classList.contains("edit-item")){
+            //pick the item id
+            updateItemId=getItemID(e.target)
+            //find the item
+            let foundProduct=product.find(pro=>pro.id===updateItemId);
+            //populate the item data to UI
+            populateUIInEditState(foundProduct);
+            //show update button
+            if(!document.querySelector(".update-product")){
+                showUpdateBtn();
+            }            
         }
     })
     
@@ -167,7 +198,47 @@ function init(){
         if(localStorage.getItem("productData")){
             product=JSON.parse(localStorage.getItem("productData"));
             //console.log(product)
+            //show item to UI
             showFilterItem(product);
+        }
+    })
+
+    //update item (Event Delegation)
+    formEle.addEventListener("click", (e)=>{
+        if(e.target.classList.contains("update-product")){
+        //pick the data from the field
+        const {nameInput, priceInput} = inputValue();
+        //validate input
+        validInput(nameInput, priceInput);
+        // if(!isError){
+        //     alert("Please provide valid input");
+        //     return;
+        // }
+        //updating the data (from user)
+        //updated data should be updated to Data Store
+        
+        product = product.map(pro=>{
+            if(pro.id===updateItemId){
+                //item should be updated
+                return{
+                    id: pro.id,
+                    name: nameInput,
+                    price: priceInput
+                }
+            }
+            else{
+                return pro;
+            }
+        })
+        //reset input
+        resetInput();
+        //show submit button
+        submitBtnEle.style.display='block';
+        //hide update button
+        document.querySelector(".update-product").remove();
+        //updated data should be updated to UI
+        showFilterItem(product);
+        //updated data should be updated to Local Store
         }
     })
 }
