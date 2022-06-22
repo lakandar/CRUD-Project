@@ -29,9 +29,20 @@ function showFilterItem(filterItem){
     });
 }
 
+function updateAfterRemove(FilterProduct, id){
+    return FilterProduct.filter(pro=>pro.id!==id);
+}
+
 function removeItemFromDataStore(id){
-    let productAfterDel=product.filter(pro=>pro.id!==id);
+    let productAfterDel=updateAfterRemove(product, id)
     product=productAfterDel;
+}
+
+function removeItemFromLocalStorage(id){
+    let FilterProduct=JSON.parse(localStorage.getItem("productData"))
+    let updateRemove=updateAfterRemove(FilterProduct, id);
+    //console.log(updateRemove);
+    localStorage.setItem("productData", JSON.stringify(updateRemove));
 }
 
 function removeItemFromUI(id){
@@ -78,6 +89,21 @@ function addItemToUI(id, name, price){
     listEle.insertAdjacentHTML('afterbegin', listData);
 }
 
+function addItemToLocalStorage(pro){
+    if(localStorage.getItem("productData")){
+        let productArr=JSON.parse(localStorage.getItem("productData"))
+        productArr.push(pro);
+        //update to LocalStorage
+        localStorage.setItem("productData", JSON.stringify(productArr));
+    }
+    else{
+        let LocalProduct=[];
+        LocalProduct.push(pro);
+        //update to LocalStorage
+        localStorage.setItem("productData", JSON.stringify(LocalProduct));
+    }
+}
+
 function init(){
 
     formEle.addEventListener('submit', (evt)=>{
@@ -89,14 +115,20 @@ function init(){
         if(!isErrorCheck){
             //generate id
             let itemID=product.length+1;
-            //add item to data-store(obj)
-            product.push({
+
+            let products={
                 id: itemID,
                 name: nameInput,
                 price: priceInput
-            })
-            //add data
+            }
+
+            //add item to data-store(obj)
+            product.push(products)
+            //add item to UI
             addItemToUI(itemID, nameInput, priceInput);
+            //add item to LocalStorage
+            addItemToLocalStorage(products);
+
             resetInput();
             //console.log(product);
         }
@@ -115,6 +147,8 @@ function init(){
             removeItemFromUI(getID);
             //remove item from data store
             removeItemFromDataStore(getID);
+            //remove item from LocalStorage
+            removeItemFromLocalStorage(getID);
         }
     })
     
@@ -122,8 +156,19 @@ function init(){
         let filterValue = e.target.value;
         let filterArr= product.filter(pro=>
             pro.name.includes(filterValue));
+
         //show item to UI
         showFilterItem(filterArr);
+        
+    })
+
+    //LocalStorage Event
+    document.addEventListener("DOMContentLoaded", e=>{
+        if(localStorage.getItem("productData")){
+            product=JSON.parse(localStorage.getItem("productData"));
+            //console.log(product)
+            showFilterItem(product);
+        }
     })
 }
 
