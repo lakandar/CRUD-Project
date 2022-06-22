@@ -121,6 +121,12 @@ function showUpdateBtn(){
     formEle.insertAdjacentHTML('beforeend', updateBtn);
 }
 
+function updateProductToLocalStorage(){
+    if(localStorage.getItem("productData")){
+        localStorage.setItem("productData", JSON.stringify(product));
+    }
+}
+
 function init(){
 
     formEle.addEventListener('submit', (evt)=>{
@@ -239,6 +245,7 @@ function init(){
         //updated data should be updated to UI
         showFilterItem(product);
         //updated data should be updated to Local Store
+        updateProductToLocalStorage();
         }
     })
 }
